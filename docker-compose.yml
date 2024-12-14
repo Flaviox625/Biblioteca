@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  # Serviço para o Backend (Node.js)
+  backend:
+    build:
+      context: ./backend  # Caminho para a pasta do backend
+    ports:
+      - "3000:3000"  # Mapeia a porta 3000 do backend para a 3000 do host
+    networks:
+      - biblioteca-network  # Rede compartilhada com outros containers
+    environment:
+      - NODE_ENV=production  # Variável de ambiente para produção
+      - MONGO_URI=mongodb://mongodb:27017/biblioteca  # Conexão com o MongoDB
+    depends_on:
+      - mongodb  # O backend depende do MongoDB estar rodando
+
+  # Serviço para o Frontend (React)
+  frontend:
+    build:
+      context: ./frontend  # Caminho para a pasta do frontend
+    ports:
+      - "3001:3001"  # Mapeia a porta 80 do frontend para a 80 do host
+    networks:
+      - biblioteca-network  # Rede compartilhada com outros containers
+    depends_on:
+      - backend  # O frontend depende do backend estar rodando
+
+  # Serviço para o MongoDB
+  mongodb:
+    image: mongo:latest  # Imagem oficial do MongoDB
+    container_name: mongodb  # Nome do container MongoDB
+    ports:
+      - "27017:27017"  # Mapeia a porta 27017 do MongoDB para a 27017 do host
+    networks:
+      - biblioteca-network  # Rede compartilhada com outros containers
+    volumes:
+      - mongodb-data:/data/db  # Volume persistente para armazenar os dados do MongoDB
+
+# Definindo a rede compartilhada entre os containers
+networks:
+  biblioteca-network:
+    driver: bridge
+
+# Definindo o volume persistente para o MongoDB
+volumes:
+  mongodb-data:
+    driver: local
